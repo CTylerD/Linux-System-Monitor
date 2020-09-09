@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.6)
 project(monitor)
 
 find_package(Curses REQUIRED)
-include_directories(${CURSES_INCLUDE_DIRS})
+include_directories("/usr/local/Cellar/ncurses/6.2/include")
 
 include_directories(include)
 file(GLOB SOURCES "src/*.cpp")
