@@ -22,6 +22,9 @@ class System {
  private:
   Processor cpu_ = {};
   std::vector<Process> processes_ = {};
+  int mem_total_val, mem_free_val;
+  float mem_used_kb;
+  float mem_utilization;
 };
 
 #endif
