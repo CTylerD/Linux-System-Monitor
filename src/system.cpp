@@ -23,37 +23,13 @@ Processor& System::Cpu() { return cpu_; }
 
 vector<Process>& System::Processes() { return processes_; }
 
-string System::Kernel() {
-  string os, version, kernel;
-  string line;
-  std::ifstream stream(LinuxParser::kProcDirectory + LinuxParser::kVersionFilename);
-  if (stream.is_open()) {
-    std::getline(stream, line);
-    std::istringstream linestream(line);
-    linestream >> os >> version >> kernel;
-  }
+std::string System::Kernel() {
+  kernel = LinuxParser::Kernel();
   return kernel;
 }
 
 float System::MemoryUtilization() {
-  string category, kilobyte_string, mem_total_string, mem_free_string;
-  string line;
-  std::ifstream stream(LinuxParser::kProcDirectory + LinuxParser::kMeminfoFilename);
-  if (stream.is_open()) {
-    for (int i = 0; i < 2; i++) {
-      std::getline(stream, line);
-      std::istringstream linestream(line);
-      if (i == 0) {
-        linestream >> category >> mem_total_string >> kilobyte_string;
-        mem_total_val = std::stoi(mem_total_string);
-      } else {
-        linestream >> category >> mem_free_string >> kilobyte_string;
-        mem_free_val = std::stoi(mem_free_string);
-      }
-    }
-  }
-  mem_used_kb = mem_total_val - mem_free_val;
-  mem_utilization = mem_used_kb / mem_total_val;
+  mem_utilization = LinuxParser::MemoryUtilization();
   return mem_utilization;
 }
 
@@ -76,7 +52,6 @@ std::string System::OperatingSystem() {
       }
     }
   }
-  return value;
 }
 
 int System::RunningProcesses() {
@@ -90,16 +65,6 @@ int System::TotalProcesses() {
 }
 
 long System::UpTime() {
-  string line;
-  string up_string, idle_string;
-  string formatted_uptime;
-  std::ifstream filestream(LinuxParser::kProcDirectory + LinuxParser::kUptimeFilename);
-  if (filestream.is_open()) {
-    if (std::getline(filestream, line)) {
-    std::istringstream linestream(line);
-    linestream >> up_string >> idle_string;
-    }
-    uptime = lround(stod(up_string));
-  }
-  return uptime;
+    uptime = LinuxParser::UpTime();
+    return uptime;
 }

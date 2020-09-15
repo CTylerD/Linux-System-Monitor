@@ -5,13 +5,29 @@
 #include <vector>
 
 #include "process.h"
+#include "linux_parser.h"
 
 using std::string;
 using std::to_string;
 using std::vector;
 
 // TODO: Return this process's ID
-int Process::Pid() { return 0; }
+int Process::Pid() {
+    string line, key, value;
+    string pid;
+    std::ifstream filestream(LinuxParser::kProcDirectory + "/" + to_string(pid) + LinuxParser::kStatusFilename);
+    if (filestream.is_open()) {
+        while (std::getline(filestream, line)) {
+            std::istringstream linestream(line);
+            linestream >> key >> value;
+            if (key == "Pid:") {
+                pid = value;
+                break;
+            }
+        }
+    }
+    return pid;
+}
 
 // TODO: Return this process's CPU utilization
 float Process::CpuUtilization() { return 0; }
