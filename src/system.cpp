@@ -5,11 +5,14 @@
 #include <vector>
 #include <sstream>
 #include <iostream>
+#include <exception>
+#include <math.h>
 
 #include "process.h"
 #include "processor.h"
 #include "system.h"
 #include "linux_parser.h"
+#include "format.h"
 
 using std::set;
 using std::size_t;
@@ -32,7 +35,6 @@ string System::Kernel() {
   return kernel;
 }
 
-// TODO: Return the system's memory utilization
 float System::MemoryUtilization() {
   string category, kilobyte_string, mem_total_string, mem_free_string;
   string line;
@@ -54,9 +56,6 @@ float System::MemoryUtilization() {
   mem_utilization = mem_used_kb / mem_total_val;
   return mem_utilization;
 }
-
-// TODO: Return the operating system name
-//std::string System::OperatingSystem() { return string(); }
 
 std::string System::OperatingSystem() {
   string line;
@@ -80,11 +79,27 @@ std::string System::OperatingSystem() {
   return value;
 }
 
-// TODO: Return the number of processes actively running on the system
-int System::RunningProcesses() { return 0; }
+int System::RunningProcesses() {
+  procs_running = LinuxParser::RunningProcesses();
+  return procs_running;
+}
 
-// TODO: Return the total number of processes on the system
-int System::TotalProcesses() { return 0; }
+int System::TotalProcesses() {
+  processes = LinuxParser::TotalProcesses();
+  return processes;
+}
 
-// TODO: Return the number of seconds since the system started running
-long int System::UpTime() { return 0; }
+long System::UpTime() {
+  string line;
+  string up_string, idle_string;
+  string formatted_uptime;
+  std::ifstream filestream(LinuxParser::kProcDirectory + LinuxParser::kUptimeFilename);
+  if (filestream.is_open()) {
+    if (std::getline(filestream, line)) {
+    std::istringstream linestream(line);
+    linestream >> up_string >> idle_string;
+    }
+    uptime = lround(stod(up_string));
+  }
+  return uptime;
+}
