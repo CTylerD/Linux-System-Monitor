@@ -11,7 +11,7 @@
 
 using std::stoi;
 using std::stof;
-using std::stol;
+using std::stoll;
 using std::string;
 using std::to_string;
 using std::vector;
@@ -126,7 +126,7 @@ long LinuxParser::Jiffies() {
         std::istringstream linestream(line);
         linestream >> cpu >> user >> nice >> system >> idle >> iowait >> irq >> softirq >> steal >> guest >> guest_nice;
     }
-    jiffies = stol(user) + stol(nice) + stol(system) + stol(idle) + stol(iowait) + stol(irq) + stol(softirq) + stol(steal) + stol(guest) + stol(guest_nice);
+    jiffies = stoll(user) + stoll(nice) + stoll(system) + stoll(idle) + stoll(iowait) + stoll(irq) + stoll(softirq) + stoll(steal) + stoll(guest) + stoll(guest_nice);
     return jiffies;
 }
 
@@ -141,7 +141,7 @@ long LinuxParser::ActiveJiffies() {
         std::istringstream linestream(line);
         linestream >> cpu >> user >> nice >> system >> idle >> iowait >> irq >> softirq >> steal >> guest >> guest_nice;
     }
-    active_jifs = stol(user) + stol(nice) + stol(system) + stol(irq) + stol(softirq) + stol(steal);
+    active_jifs = stoll(user) + stoll(nice) + stoll(system) + stoll(irq) + stoll(softirq) + stoll(steal);
     return active_jifs;
 }
 
@@ -156,7 +156,7 @@ long LinuxParser::IdleJiffies() {
         std::istringstream linestream(line);
         linestream >> cpu >> user >> nice >> system >> idle >> iowait >> irq >> softirq >> steal >> guest >> guest_nice;
     }
-    idle_jifs = stol(idle) + stol(iowait);
+    idle_jifs = stoll(idle) + stoll(iowait);
     return idle_jifs;
 }
 
@@ -203,13 +203,13 @@ long LinuxParser::ActiveJiffies(int pid) {
       for (int i = 1; i < 18; i++) {
         linestream >> value;
         if (i == 14) {
-          user_time = stol(value);
+          user_time = stoll(value);
         } else if (i == 15) {
-          kernel_time = stol(value);
+          kernel_time = stoll(value);
         } else if (i == 16) {
-          cutime = stol(value);
+          cutime = stoll(value);
         } else if (i == 17) {
-          cstime = stol(value);
+          cstime = stoll(value);
         }
       }
     }
@@ -247,7 +247,7 @@ float LinuxParser::CpuUtilization(int pid_) {
             }
         }
     
-    seconds = uptime - (stol(starttime) / hertz);
+    seconds = uptime - (stoll(starttime) / hertz);
     cpu_utilization = (((float) total_time / (float) hertz) / (float) seconds);
 
     return cpu_utilization;
@@ -268,7 +268,7 @@ string LinuxParser::Ram(int pid) {
             }
         }
     }
-    ram_mb = stol(ram_kb) / 1000;
+    ram_mb = stoll(ram_kb) / 1000;
     return to_string(ram_mb);
 }
 
@@ -322,7 +322,7 @@ long LinuxParser::UpTime(int pid) {
         for (int i=1; i < 23; i++) {
               linestream >> starttime;
         }
-        uptime = (stol(starttime) / hertz);
+        uptime = (stoll(starttime) / hertz);
     }
     return uptime;
 }

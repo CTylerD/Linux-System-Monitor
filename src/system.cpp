@@ -5,14 +5,12 @@
 #include <vector>
 #include <sstream>
 #include <iostream>
-#include <exception>
 #include <math.h>
 
 #include "process.h"
 #include "processor.h"
 #include "system.h"
 #include "linux_parser.h"
-#include "format.h"
 
 using std::set;
 using std::size_t;

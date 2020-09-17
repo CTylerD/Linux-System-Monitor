@@ -1,8 +1,8 @@
 #include <string>
 #include <iostream>
+#include <iomanip>
 
 #include "format.h"
-#include <iomanip>
 
 using std::string;
 using std::to_string;
