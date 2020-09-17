@@ -7,8 +7,11 @@
 #include <iostream>
 
 #include "linux_parser.h"
+#include "processor.h"
 
+using std::stoi;
 using std::stof;
+using std::stol;
 using std::string;
 using std::to_string;
 using std::vector;
@@ -119,27 +122,8 @@ long LinuxParser::Jiffies() {
         std::istringstream linestream(line);
         linestream >> cpu >> user >> nice >> system >> idle >> iowait >> irq >> softirq >> steal >> guest >> guest_nice;
     }
-    jiffies = stoi(cpu) + stoi(user) + stoi(nice) + stoi(system) + stoi(idle) + stoi(iowait) + stoi(irq) + stoi(softirq) + stoi(steal) + stoi(guest) + stoi(guest_nice);
+    jiffies = stoi(user) + stoi(nice) + stoi(system) + stoi(idle) + stoi(iowait) + stoi(irq) + stoi(softirq) + stoi(steal) + stoi(guest) + stoi(guest_nice);
     return jiffies;
-}
-
-long LinuxParser::ActiveJiffies(int pid) {
-  string line;
-  string key, value;
-  std::ifstream filestream(kProcDirectory + "/" + to_string(pid) + kStatFilename);
-  int user_time, kernel_time;
-  if (filestream.is_open()) {
-    while (std::getline(filestream, line)) {
-      std::istringstream linestream(line);
-      linestream >> key >> value;
-      if (key == "utime") {
-        user_time = stoi(value);
-      } else if (key == "stime") {
-        kernel_time = stoi(value);
-      }
-    }
-  }
-  return user_time + kernel_time;
 }
 
 long LinuxParser::ActiveJiffies() {
@@ -153,7 +137,7 @@ long LinuxParser::ActiveJiffies() {
         std::istringstream linestream(line);
         linestream >> cpu >> user >> nice >> system >> idle >> iowait >> irq >> softirq >> steal >> guest >> guest_nice;
     }
-    active_jifs =  stoi(cpu) + stoi(user) + stoi(nice) + stoi(system);
+    active_jifs = stoi(user) + stoi(nice) + stoi(system) + stoi(irq) + stoi(softirq) + stoi(steal);
     return active_jifs;
 }
 
@@ -170,28 +154,6 @@ long LinuxParser::IdleJiffies() {
     }
     idle_jifs = stoi(idle) + stoi(iowait);
     return idle_jifs;
-}
-
-float LinuxParser::CpuUtilization() {
-    string line;
-    string cpu, user, nice, system, idle, iowait, irq, softirq, steal, guest, guest_nice;
-    long cpu_total, cpu_idle;
-    float cpu_utilization;
-    int user_time{};
-    int kernel_time{};
-    std::ifstream filestream(LinuxParser::kProcDirectory + LinuxParser::kStatFilename);
-    
-    if (filestream.is_open()) {
-        std::getline(filestream, line);
-        std::istringstream linestream(line);
-        linestream >> cpu >> user >> nice >> system >> idle >> iowait >> irq >> softirq >> steal >> guest >> guest_nice;
-    }
-
-    cpu_total = Jiffies();
-    cpu_idle = IdleJiffies();
-    cpu_utilization= (100 * cpu_total / cpu_idle);
-
-    return cpu_utilization;
 }
 
 int LinuxParser::TotalProcesses() {
@@ -226,37 +188,86 @@ int LinuxParser::RunningProcesses() {
   }
 }
 
+long LinuxParser::ActiveJiffies(int pid) {
+  string line;
+  string value;
+  std::ifstream filestream(kProcDirectory + "/" + to_string(pid) + kStatFilename);
+  int user_time, kernel_time, cutime, cstime;
+  if (filestream.is_open()) {
+    while (std::getline(filestream, line)) {
+      std::istringstream linestream(line);
+      for (int i = 1; i < 18; i++) {
+        linestream >> value;
+        if (i == 14) {
+          user_time = stoi(value);
+        } else if (i == 15) {
+          kernel_time = stoi(value);
+        } else if (i == 16) {
+          cutime = stoi(value);
+        } else if (i == 17) {
+          cstime = stoi(value);
+        }
+      }
+    }
+  }
+  return user_time + kernel_time + cutime + cstime;
+}
+
 string LinuxParser::Command(int pid) {
-    string line, key, value;
-    string command;
-    std::ifstream filestream(kProcDirectory + "/" + to_string(pid) + kStatusFilename);
+    string line, command;
+    std::ifstream filestream(kProcDirectory + "/" + to_string(pid) + kCmdlineFilename);
     if (filestream.is_open()) {
         std::getline(filestream, line);
         std::istringstream linestream(line);
-        linestream >> key >> value;
-        if (key == "Name:") {
-            command = value;
+        linestream >> command;
+        return command;
+    }
+}
+
+float LinuxParser::CpuUtilization(int pid_) {
+    string line, value, starttime;
+    float cpu_utilization;
+    int seconds;
+
+    int hertz = sysconf(_SC_CLK_TCK);
+    int uptime = UpTime();
+    int total_time = ActiveJiffies(pid_);
+
+    std::ifstream filestream(kProcDirectory + "/" + to_string(pid_) + kStatFilename);
+    
+    if (filestream.is_open()) {
+        std::getline(filestream, line);
+        std::istringstream linestream(line);
+        for (int i = 0; i < 22; i++) {
+            linestream >> value;
+            if (i == 21) {
+                starttime = value;
+            }
         }
     }
-    return command;
+    
+    seconds = uptime - (stoi(starttime) / hertz);
+    cpu_utilization = (((float) total_time / (float) hertz) / (float) seconds);
+
+    return cpu_utilization;
 }
 
 string LinuxParser::Ram(int pid) {
-    string line, key, value;
-    string ram;
-    float ram_mb;
+    string line, key, value, ram_kb{"0"};
+    int ram_mb;
     std::ifstream filestream(kProcDirectory + "/" + to_string(pid) + kStatusFilename);
     if (filestream.is_open()) {
         while (std::getline(filestream, line)) {
             std::istringstream linestream(line);
-            linestream >> key >> value;
-            if (key == "VMSize:") {
-                ram = value;
-                break;
+            if (linestream >> key >> value) {
+                if (key == "VmSize:") {
+                    ram_kb = value;
+                    break;
+                }
             }
         }
     }
-    ram_mb = stoi(ram) / 1000;
+    ram_mb = stoi(ram_kb) / 1000;
     return to_string(ram_mb);
 }
 
@@ -270,11 +281,10 @@ string LinuxParser::Uid(int pid) {
             linestream >> key >> value;
             if (key == "Uid:") {
                 uid = value;
-                break;
+                return uid;
             }
         }
     }
-    return uid;
 }
 
 string LinuxParser::User(int pid) {
@@ -284,32 +294,36 @@ string LinuxParser::User(int pid) {
     std::ifstream filestream(kPasswordPath);
     if (filestream.is_open()) {
         while (std::getline(filestream, line)) {
+            std::replace(line.begin(), line.end(), ':', ' ');
             std::istringstream linestream(line);
             linestream >> key >> x >> value;
             if (value == uid) {
                 user = key;
-                break;
+                return user;
+            } else {
+                return "asdf";
             }
         }
     }
-    return user;
 }
 
 long LinuxParser::UpTime(int pid) {
-    string line, key, value;
+    string line, key;
+    string starttime;
     long uptime;
-    long system_uptime = LinuxParser::UpTime();
+
+    long system_uptime = UpTime();
     string uid = Uid(pid);
-    std::ifstream filestream(kPasswordPath);
+    int hertz = sysconf(_SC_CLK_TCK);
+
+    std::ifstream filestream(kProcDirectory + "/" + to_string(pid) + kStatFilename);
     if (filestream.is_open()) {
         std::getline(filestream, line);
         std::istringstream linestream(line);
-        for (int i=0; i < 22; i++) {
-            linestream >> value;
+        for (int i=1; i < 23; i++) {
+              linestream >> starttime;
         }
-        if (stol(value) > 0) {
-            uptime = system_uptime - (stol(value)/sysconf(_SC_CLK_TCK));
-        }
+        uptime = (stoi(starttime) / hertz);
     }
     return uptime;
 }

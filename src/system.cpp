@@ -19,9 +19,19 @@ using std::size_t;
 using std::string;
 using std::vector;
 
-Processor& System::Cpu() { return cpu_; }
+Processor& System::Cpu() { 
+    static Processor cpu;
+    return cpu;}
 
-vector<Process>& System::Processes() { return processes_; }
+vector<Process>& System::Processes() {
+    processes.clear();
+    for (int pid : LinuxParser::Pids()) {
+        Process process(pid);
+        processes.emplace_back(process);
+    }
+    std::sort(processes.begin(), processes.end());
+    return processes;
+}
 
 std::string System::Kernel() {
   kernel = LinuxParser::Kernel();
@@ -34,24 +44,8 @@ float System::MemoryUtilization() {
 }
 
 std::string System::OperatingSystem() {
-  string line;
-  string key;
-  string value;
-  std::ifstream filestream(LinuxParser::kOSPath);
-  if (filestream.is_open()) {
-    while (std::getline(filestream, line)) {
-      std::replace(line.begin(), line.end(), ' ', '_');
-      std::replace(line.begin(), line.end(), '=', ' ');
-      std::replace(line.begin(), line.end(), '"', ' ');
-      std::istringstream linestream(line);
-      while (linestream >> key >> value) {
-        if (key == "PRETTY_NAME") {
-          std::replace(value.begin(), value.end(), '_', ' ');
-          return value;
-        }
-      }
-    }
-  }
+  operating_system_ = LinuxParser::OperatingSystem();
+  return operating_system_;
 }
 
 int System::RunningProcesses() {
@@ -60,8 +54,8 @@ int System::RunningProcesses() {
 }
 
 int System::TotalProcesses() {
-  processes = LinuxParser::TotalProcesses();
-  return processes;
+  total_processes = LinuxParser::TotalProcesses();
+  return total_processes;
 }
 
 long System::UpTime() {

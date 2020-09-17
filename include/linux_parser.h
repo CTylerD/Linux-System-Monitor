@@ -41,7 +41,9 @@ enum CPUStates {
   kGuest_,
   kGuestNice_
 };
+
 float CpuUtilization();
+float CpuUtilization(int pid_);
 long Jiffies();
 long ActiveJiffies();
 long ActiveJiffies(int pid);

@@ -1,29 +1,23 @@
 #include "processor.h"
 #include "linux_parser.h"
-#include <iostream>
-#include <sstream>
-#include <string>
-#include <math.h>
-
-using std::string;
-using std::stof;
 
 float Processor::Utilization() { 
-    string line;
-    string cpu, user, nice, system, idle, iowait, irq, softirq, steal, guest, guest_nice;
-    float passive, active, total, usage_percentage;
-    std::ifstream filestream(LinuxParser::kProcDirectory + LinuxParser::kStatFilename);
+    long total, prev_total, total_delta, idle_delta;
+    float usage_percentage;
     
-    if (filestream.is_open()) {
-        std::getline(filestream, line);
-        std::istringstream linestream(line);
-        linestream >> cpu >> user >> nice >> system >> idle >> iowait >> irq >> softirq >> steal >> guest >> guest_nice;
-    }
+    active_cpu = LinuxParser::ActiveJiffies();
+    idle_cpu = LinuxParser::IdleJiffies();
 
-    passive = stof(idle) + stof(iowait);
-    active = stof(user) + stof(nice) + stof(system) + stof(irq) + stof(softirq) + stof(steal);
-    total = passive + active;
-    usage_percentage = (total - passive) / total;
+    prev_total = prev_idle_cpu + prev_active_cpu;
+    total = active_cpu + idle_cpu;
+    
+    total_delta = total - prev_total;
+    idle_delta = idle_cpu - prev_idle_cpu;
 
-    return roundf(usage_percentage * 100) / 100; 
+    prev_idle_cpu = idle_cpu;
+    prev_active_cpu = active_cpu;
+    
+    usage_percentage = (total_delta - idle_delta) / total_delta;
+
+    return usage_percentage;
 }

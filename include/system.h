@@ -18,16 +18,18 @@ class System {
   std::string Kernel();
   std::string OperatingSystem();
 
+  std::vector<Process> processes = {};
+
  private:
   std::string kernel;
-  Processor cpu_ = {};
-  std::vector<Process> processes_ = {};
+  Processor cpu = {};
   int mem_total_val, mem_free_val;
   float mem_used_kb;
   float mem_utilization;
-  int processes;
+  int total_processes;
   int procs_running;
   long uptime;
+  std::string operating_system_;
 };
 
 #endif
