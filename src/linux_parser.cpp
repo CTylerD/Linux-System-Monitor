@@ -96,6 +96,10 @@ float LinuxParser::MemoryUtilization() {
   return mem_utilization;
 }
 
+float LinuxParser::CpuUtilization() {
+    return 10.0;
+} 
+
 long LinuxParser::UpTime() {
   string line;
   string up_string, idle_string;
@@ -122,7 +126,7 @@ long LinuxParser::Jiffies() {
         std::istringstream linestream(line);
         linestream >> cpu >> user >> nice >> system >> idle >> iowait >> irq >> softirq >> steal >> guest >> guest_nice;
     }
-    jiffies = stoi(user) + stoi(nice) + stoi(system) + stoi(idle) + stoi(iowait) + stoi(irq) + stoi(softirq) + stoi(steal) + stoi(guest) + stoi(guest_nice);
+    jiffies = stol(user) + stol(nice) + stol(system) + stol(idle) + stol(iowait) + stol(irq) + stol(softirq) + stol(steal) + stol(guest) + stol(guest_nice);
     return jiffies;
 }
 
@@ -137,7 +141,7 @@ long LinuxParser::ActiveJiffies() {
         std::istringstream linestream(line);
         linestream >> cpu >> user >> nice >> system >> idle >> iowait >> irq >> softirq >> steal >> guest >> guest_nice;
     }
-    active_jifs = stoi(user) + stoi(nice) + stoi(system) + stoi(irq) + stoi(softirq) + stoi(steal);
+    active_jifs = stol(user) + stol(nice) + stol(system) + stol(irq) + stol(softirq) + stol(steal);
     return active_jifs;
 }
 
@@ -152,7 +156,7 @@ long LinuxParser::IdleJiffies() {
         std::istringstream linestream(line);
         linestream >> cpu >> user >> nice >> system >> idle >> iowait >> irq >> softirq >> steal >> guest >> guest_nice;
     }
-    idle_jifs = stoi(idle) + stoi(iowait);
+    idle_jifs = stol(idle) + stol(iowait);
     return idle_jifs;
 }
 
@@ -199,13 +203,13 @@ long LinuxParser::ActiveJiffies(int pid) {
       for (int i = 1; i < 18; i++) {
         linestream >> value;
         if (i == 14) {
-          user_time = stoi(value);
+          user_time = stol(value);
         } else if (i == 15) {
-          kernel_time = stoi(value);
+          kernel_time = stol(value);
         } else if (i == 16) {
-          cutime = stoi(value);
+          cutime = stol(value);
         } else if (i == 17) {
-          cstime = stoi(value);
+          cstime = stol(value);
         }
       }
     }
@@ -239,14 +243,11 @@ float LinuxParser::CpuUtilization(int pid_) {
         std::getline(filestream, line);
         std::istringstream linestream(line);
         for (int i = 0; i < 22; i++) {
-            linestream >> value;
-            if (i == 21) {
-                starttime = value;
+            linestream >> starttime;
             }
         }
-    }
     
-    seconds = uptime - (stoi(starttime) / hertz);
+    seconds = uptime - (stol(starttime) / hertz);
     cpu_utilization = (((float) total_time / (float) hertz) / (float) seconds);
 
     return cpu_utilization;
@@ -267,7 +268,7 @@ string LinuxParser::Ram(int pid) {
             }
         }
     }
-    ram_mb = stoi(ram_kb) / 1000;
+    ram_mb = stol(ram_kb) / 1000;
     return to_string(ram_mb);
 }
 
@@ -300,8 +301,6 @@ string LinuxParser::User(int pid) {
             if (value == uid) {
                 user = key;
                 return user;
-            } else {
-                return "asdf";
             }
         }
     }
@@ -323,7 +322,7 @@ long LinuxParser::UpTime(int pid) {
         for (int i=1; i < 23; i++) {
               linestream >> starttime;
         }
-        uptime = (stoi(starttime) / hertz);
+        uptime = (stol(starttime) / hertz);
     }
     return uptime;
 }
