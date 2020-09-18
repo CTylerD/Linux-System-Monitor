@@ -8,6 +8,8 @@
 #include "process.h"
 #include "linux_parser.h"
 
+#define HERTZ sysconf(_SC_CLK_TCK)
+
 using std::string;
 using std::to_string;
 using std::vector;
@@ -37,8 +39,7 @@ string Process::User() {
 }
 
 long int Process::UpTime() {
-    int hertz = sysconf(_SC_CLK_TCK);
-    uptime_ = LinuxParser::UpTime() - (LinuxParser::UpTime(pid_) / hertz);
+    uptime_ = LinuxParser::UpTime() - (LinuxParser::UpTime(pid_) / HERTZ);
     return uptime_;
 }
 

@@ -21,7 +21,6 @@ string Format::ElapsedTime(long seconds) {
     hrs_string = LeadingZero(hrs);
 
     formatted_time = hrs_string + ":" + mins_string + ":" + secs_string;
-
     return formatted_time;
 }
 
