@@ -16,7 +16,6 @@ To nstall ncurses within your own Linux environment: `sudo apt install libncurse
 2. Build the project: `make build`
 
 3. Run the resulting executable: `./build/monitor`
-![Starting System Monitor](images/starting_monitor.png)
 
 ## Contributing Authors
 
