@@ -1,4 +1,4 @@
-# CppND-System-Monitor
+# Linux System Monitor
 
 ## Udacity C++ Nanodegree - Project #2
 
