@@ -5,7 +5,7 @@
 ![System Monitor](images/monitor.png)
 
 ## Prerequisites and Dependencies
-[ncurses](https://www.gnu.org/software/ncurses/) is a library that facilitates text-based graphical output in the terminal. This project relies on ncurses for display output
+[ncurses](https://www.gnu.org/software/ncurses/) is a library that facilitates text-based graphical output in the terminal. This project relies on ncurses for display output.
 
 To nstall ncurses within your own Linux environment: `sudo apt install libncurses5-dev libncursesw5-dev`
 
