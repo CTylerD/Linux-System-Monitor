@@ -1,6 +1,5 @@
 # Linux System Monitor
 
-## Udacity C++ Nanodegree - Project #2
 
 ![System Monitor](images/monitor.png)
 
@@ -18,10 +17,7 @@ To nstall ncurses within your own Linux environment: `sudo apt install libncurse
 3. Run the resulting executable: `./build/monitor`
 
 ## Contributing Authors
-
 C. Tyler Dennis  
-Udacity
 
 ## Licensing
-
 This project is released under the [MIT License](https://opensource.org/licenses/MIT)
